@@ -85,6 +85,12 @@ Welcome to the official MetaNode SDK documentation. This comprehensive guide pro
 - [REST API Documentation](api/rest_api.md)
 - [WebSocket API](api/websocket_api.md)
 
+## Publishing & Distribution
+
+- [Complete Publishing Guide](publishing/publishing_documentation.md)
+- [Package Distribution Guide](../PUBLISH_GUIDE.md)
+- [GitHub Repository Setup](publishing/publishing_documentation.md#publishing-checklist)
+
 ## Contribute
 
 - [Contributing Guidelines](contributing/guidelines.md)

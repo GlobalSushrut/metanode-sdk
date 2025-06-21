@@ -40,7 +40,7 @@ The SDK provides several command-line tools:
 
 ## Quick Start
 
-### Create a Wallet
+### Python
 
 ```bash
 metanode wallet create
