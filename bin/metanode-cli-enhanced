@@ -1,0 +1,9 @@
+#!/bin/bash
+# Enhanced MetaNode CLI wrapper
+# This script integrates all components
+
+# Get the directory where this script is located
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+
+# Execute the main CLI script
+$SCRIPT_DIR/metanode-cli-main "$@"

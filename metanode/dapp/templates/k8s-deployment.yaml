@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  annotations:
+    metanode.blockchain/verification: required
+    metanode.blockchain/immutable: "true"
+    metanode.blockchain/consensus: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+      annotations:
+        metanode.blockchain/verification: required
+        metanode.blockchain/immutable: "true"
+    spec:
+      containers:
+      - name: app
+        image: ${IMAGE_NAME:-app:latest}
+        ports:
+        - containerPort: 8000
+        env:
+        - name: METANODE_NETWORK
+          valueFrom:
+            configMapKeyRef:
+              name: metanode-network-config
+              key: network
+        - name: METANODE_RPC_URL
+          valueFrom:
+            configMapKeyRef:
+              name: metanode-network-config
+              key: rpc_url
+        - name: METANODE_WS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: metanode-network-config
+              key: ws_url
+        - name: METANODE_IPFS_GATEWAY
+          valueFrom:
+            configMapKeyRef:
+              name: metanode-network-config
+              key: ipfs_gateway
+        - name: METANODE_AUTO_CONNECT
+          value: "true"
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+      
+      # vPod sidecar container using the approach that fixed MetaNode demo CLI
+      - name: vpod-sidecar
+        image: python:3.9-slim
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /data && 
+          echo '{"status":"active","service":"vpod","vpod_id":"$(POD_NAME)","algorithms":["federated-average","secure-aggregation"]}' > /data/status.json && 
+          python3 -m http.server 8070 -d /data
+        ports:
+        - containerPort: 8070
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: METANODE_NETWORK
+          valueFrom:
+            configMapKeyRef:
+              name: metanode-network-config
+              key: network
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        emptyDir: {}

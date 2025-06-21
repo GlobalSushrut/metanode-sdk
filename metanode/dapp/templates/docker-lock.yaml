@@ -1,0 +1,20 @@
+version: "1.0"
+options:
+  content-trust: true
+  signature-verification: true
+  immutable-image: true
+  security-capabilities:
+    allow-list:
+      - cap_net_bind_service
+    drop-all: true
+
+services:
+  app:
+    image-rules:
+      content-trust-base: true
+      immutable: true
+  
+  vpod-sidecar:
+    image-rules:
+      content-trust-base: true
+      immutable: true

@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+"""
+MetaNode SDK CLI - Agreement Module
+------------------------------------------------
+This module enables developers to create and manage agreements.
+"""
+import os
+import sys
+import json
+import argparse
+import datetime
+import uuid
+import subprocess
+import requests
+from pathlib import Path
+
+# CLI VERSION
+CLI_VERSION = "1.0.0"
+
+class AgreementManager:
+    """Manages DApp agreements with blockchain integration"""
+    
+    def __init__(self, app_path, network="testnet", rpc_url="http://159.203.17.36:8545"):
+        self.app_path = os.path.abspath(app_path)
+        self.network = network
+        self.rpc_url = rpc_url
+        self.agreements_dir = os.path.join(self.app_path, "metanode_agreements")
+        
+        # Create agreements directory if it doesn't exist
+        if not os.path.exists(self.agreements_dir):
+            os.makedirs(self.agreements_dir)
+    
+    def create_agreement(self, agreement_type="standard", meta=None):
+        """Create a new agreement for the DApp"""
+        # Generate unique agreement ID
+        agreement_id = str(uuid.uuid4())
+        
+        # Create agreement data
+        agreement = {
+            "id": agreement_id,
+            "type": agreement_type,
+            "created_at": datetime.datetime.now().isoformat(),
+            "network": self.network,
+            "rpc_url": self.rpc_url,
+            "status": "created",
+            "meta": meta or {},
+            "signatures": [],
+            "blockchain_tx": None
+        }
+        
+        # Add app-specific metadata
+        try:
+            with open(os.path.join(self.app_path, "metanode_config.json"), "r") as f:
+                app_config = json.load(f)
+                agreement["app_id"] = app_config.get("deployment_id", "unknown")
+                agreement["app_name"] = app_config.get("app_name", "MetaNode App")
+        except (FileNotFoundError, json.JSONDecodeError):
+            agreement["app_id"] = "unknown"
+            agreement["app_name"] = "MetaNode App"
+        
+        # Save agreement file
+        agreement_path = os.path.join(self.agreements_dir, f"agreement_{agreement_id}.json")
+        with open(agreement_path, "w") as f:
+            json.dump(agreement, f, indent=2)
+        
+        print(f"Agreement created with ID: {agreement_id}")
+        print(f"Agreement file saved to: {agreement_path}")
+        return agreement
+    
+    def deploy_agreement(self, agreement_id):
+        """Deploy agreement to blockchain"""
+        agreement_path = os.path.join(self.agreements_dir, f"agreement_{agreement_id}.json")
+        
+        if not os.path.exists(agreement_path):
+            print(f"Error: Agreement {agreement_id} not found")
+            return False
+        
+        # Load agreement
+        with open(agreement_path, "r") as f:
+            agreement = json.load(f)
+        
+        print(f"Deploying agreement {agreement_id} to blockchain...")
+        
+        # Simulated blockchain deployment (in production this would interact with the blockchain)
+        tx_hash = "0x" + uuid.uuid4().hex
+        agreement["blockchain_tx"] = tx_hash
+        agreement["status"] = "deployed"
+        agreement["deployed_at"] = datetime.datetime.now().isoformat()
+        
+        # Save updated agreement
+        with open(agreement_path, "w") as f:
+            json.dump(agreement, f, indent=2)
+        
+        print(f"Agreement deployed with transaction hash: {tx_hash}")
+        return True
+    
+    def verify_agreement(self, agreement_id):
+        """Verify agreement status on blockchain"""
+        agreement_path = os.path.join(self.agreements_dir, f"agreement_{agreement_id}.json")
+        
+        if not os.path.exists(agreement_path):
+            print(f"Error: Agreement {agreement_id} not found")
+            return False
+        
+        # Load agreement
+        with open(agreement_path, "r") as f:
+            agreement = json.load(f)
+        
+        # Check if deployed
+        if agreement.get("status") != "deployed":
+            print(f"Agreement {agreement_id} is not deployed yet")
+            return False
+        
+        print(f"Verifying agreement {agreement_id} on blockchain...")
+        
+        # Simulated blockchain verification (in production this would query the blockchain)
+        agreement["verified"] = True
+        agreement["verified_at"] = datetime.datetime.now().isoformat()
+        
+        # Save updated agreement
+        with open(agreement_path, "w") as f:
+            json.dump(agreement, f, indent=2)
+        
+        print(f"Agreement {agreement_id} verified successfully")
+        return True
+    
+    def get_agreement_status(self, agreement_id=None):
+        """Get status of all agreements or a specific one"""
+        if agreement_id:
+            agreement_path = os.path.join(self.agreements_dir, f"agreement_{agreement_id}.json")
+            
+            if not os.path.exists(agreement_path):
+                print(f"Error: Agreement {agreement_id} not found")
+                return None
+            
+            with open(agreement_path, "r") as f:
+                agreement = json.load(f)
+            
+            return [agreement]
+        else:
+            # Get all agreements
+            agreements = []
+            for filename in os.listdir(self.agreements_dir):
+                if filename.startswith("agreement_") and filename.endswith(".json"):
+                    with open(os.path.join(self.agreements_dir, filename), "r") as f:
+                        agreement = json.load(f)
+                        agreements.append(agreement)
+            
+            return agreements
+    
+    def connect_to_testnet(self, agreement_id):
+        """Connect agreement to testnet"""
+        agreement_path = os.path.join(self.agreements_dir, f"agreement_{agreement_id}.json")
+        
+        if not os.path.exists(agreement_path):
+            print(f"Error: Agreement {agreement_id} not found")
+            return False
+        
+        # Load agreement
+        with open(agreement_path, "r") as f:
+            agreement = json.load(f)
+        
+        print(f"Connecting agreement {agreement_id} to testnet at {self.rpc_url}...")
+        
+        # Update agreement with testnet connection
+        agreement["testnet_connected"] = True
+        agreement["testnet_connected_at"] = datetime.datetime.now().isoformat()
+        agreement["testnet_rpc"] = self.rpc_url
+        
+        # Save updated agreement
+        with open(agreement_path, "w") as f:
+            json.dump(agreement, f, indent=2)
+        
+        print(f"Agreement {agreement_id} connected to testnet")
+        return True
+
+def main():
+    """Main entry point for agreement module"""
+    parser = argparse.ArgumentParser(description="MetaNode Agreement Management")
+    parser.add_argument("app_path", help="Path to your application")
+    parser.add_argument("--create", help="Create a new agreement", action="store_true")
+    parser.add_argument("--deploy", help="Deploy an agreement", action="store_true")
+    parser.add_argument("--verify", help="Verify an agreement", action="store_true")
+    parser.add_argument("--status", help="Check agreement status", action="store_true")
+    parser.add_argument("--connect-testnet", help="Connect agreement to testnet", action="store_true")
+    parser.add_argument("--id", help="Agreement ID", default=None)
+    parser.add_argument("--type", help="Agreement type", default="standard")
+    parser.add_argument("--network", help="Network type: 'testnet' or 'mainnet'", default="testnet")
+    parser.add_argument("--rpc", help="Custom RPC endpoint", default="http://159.203.17.36:8545")
+    
+    args = parser.parse_args()
+    
+    # Initialize agreement manager
+    manager = AgreementManager(args.app_path, args.network, args.rpc)
+    
+    if args.create:
+        agreement = manager.create_agreement(args.type)
+        if agreement and args.connect_testnet:
+            manager.connect_to_testnet(agreement["id"])
+    elif args.deploy:
+        if not args.id:
+            print("Error: Agreement ID required for deployment")
+            return
+        manager.deploy_agreement(args.id)
+    elif args.verify:
+        if not args.id:
+            print("Error: Agreement ID required for verification")
+            return
+        manager.verify_agreement(args.id)
+    elif args.status:
+        agreements = manager.get_agreement_status(args.id)
+        if agreements:
+            print("\n===== AGREEMENT STATUS =====")
+            for agreement in agreements:
+                print(f"ID: {agreement['id']}")
+                print(f"Status: {agreement['status']}")
+                print(f"Created: {agreement['created_at']}")
+                if "deployed_at" in agreement:
+                    print(f"Deployed: {agreement['deployed_at']}")
+                if "verified" in agreement and agreement["verified"]:
+                    print(f"Verified: {agreement['verified_at']}")
+                if "testnet_connected" in agreement and agreement["testnet_connected"]:
+                    print(f"Testnet Connected: {agreement['testnet_connected_at']}")
+                    print(f"Testnet RPC: {agreement['testnet_rpc']}")
+                print("---------------------------")
+    elif args.connect_testnet:
+        if not args.id:
+            print("Error: Agreement ID required for testnet connection")
+            return
+        manager.connect_to_testnet(args.id)
+    else:
+        print("Error: No action specified")
+
+if __name__ == "__main__":
+    main()

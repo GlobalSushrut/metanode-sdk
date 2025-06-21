@@ -1,0 +1,21 @@
+include LICENSE
+include README.md
+include SECURITY.md
+include CODE_OF_CONDUCT.md
+include CONTRIBUTING.md
+include requirements.txt
+include pyproject.toml
+
+recursive-include metanode/k8s-deployment *.yaml
+recursive-include metanode/dapp/templates *.yaml *.yml *.json *.js
+recursive-include metanode/static *
+recursive-include docs *.md *.rst *.txt *.png *.jpg
+recursive-include bin *
+recursive-include scripts *
+
+prune .github
+prune tests
+prune examples/*/.git
+prune examples/*/node_modules
+prune examples/*/__pycache__
+prune examples/*/.vscode

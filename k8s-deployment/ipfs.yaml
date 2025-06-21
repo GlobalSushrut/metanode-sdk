@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ipfs
+  namespace: metanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ipfs
+  template:
+    metadata:
+      labels:
+        app: ipfs
+    spec:
+      containers:
+      - name: ipfs
+        image: ipfs/kubo:latest
+        ports:
+        - containerPort: 4001
+          name: swarm
+        - containerPort: 5001
+          name: api
+        - containerPort: 8080
+          name: gateway
+        volumeMounts:
+        - name: ipfs-data
+          mountPath: /data/ipfs
+      volumes:
+      - name: ipfs-data
+        persistentVolumeClaim:
+          claimName: ipfs-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ipfs
+  namespace: metanode
+spec:
+  selector:
+    app: ipfs
+  ports:
+  - name: api
+    port: 5001
+    targetPort: 5001
+  - name: gateway
+    port: 8080
+    targetPort: 8080

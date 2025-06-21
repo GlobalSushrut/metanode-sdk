@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metanode-env
+  namespace: metanode
+data:
+  # Console mode - no UI dependencies
+  CONSOLE_MODE: "true"
+  # Use existing Docker vPod containers
+  USE_EXISTING_VPOD: "true"
+  # Testnet infrastructure configuration
+  TESTNET_MODE: "true"
+  TESTNET_DIFFICULTY: "10"
+  TESTNET_API_PORT: "8000"
+  TESTNET_API_HOST: "api-server"
+  # Infrastructure mode (manages server and client nodes)
+  INFRASTRUCTURE_MODE: "true"
+  NODE_MANAGEMENT_ENABLED: "true"

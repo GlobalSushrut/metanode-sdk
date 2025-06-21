@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaNode SDK Download</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .download-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border-left: 4px solid #3498db;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+            border: 1px solid #e1e4e8;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #e1e4e8;
+        }
+        .features {
+            margin-top: 30px;
+        }
+        .feature {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            border-left: 2px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MetaNode SDK</h1>
+            <p>Quantum-Federated Blockchain Infrastructure for Secure and Scalable Applications</p>
+        </div>
+
+        <div class="download-section">
+            <h2>Download Latest Version</h2>
+            <p>Current version: <strong>1.0.0b0</strong> (Updated: June 20, 2025)</p>
+            <p>
+                <a href="download/metanode_sdk-1.0.0b0.tar.gz" class="btn">Download Source Package</a>
+                <a href="download/metanode_sdk-1.0.0b0-py3-none-any.whl" class="btn">Download Wheel Package</a>
+            </p>
+        </div>
+
+        <h2>Installation Instructions</h2>
+        <p>Install directly from PyPI:</p>
+        <pre>pip install metanode-sdk</pre>
+        
+        <p>Or install from the downloaded wheel:</p>
+        <pre>pip install metanode_sdk-1.0.0b0-py3-none-any.whl</pre>
+
+        <h2>Getting Started</h2>
+        <p>After installation, you can use the command-line tools:</p>
+        <pre>metanode --help</pre>
+        <p>Or import the SDK in your Python code:</p>
+        <pre>from metanode.admin.k8s_manager import K8sManager
+
+# Initialize the K8s manager
+k8s_manager = K8sManager()
+
+# Generate a cryptographic key for node authentication
+result = k8s_manager.generate_node_crypt_key()
+print(f"Generated key ID: {result['key_id']}")</pre>
+
+        <div class="features">
+            <h2>Key Features</h2>
+            
+            <div class="feature">
+                <h3>Kubernetes Integration</h3>
+                <p>Deploy and manage secure testnet and application nodes on Kubernetes clusters with cryptographic verification.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>Zero-Knowledge Proofs</h3>
+                <p>Create and verify zero-knowledge proofs for secure data aggregation without revealing private information.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>IPFS Integration</h3>
+                <p>Easily store and retrieve data from the InterPlanetary File System (IPFS) with built-in tools.</p>
+            </div>
+            
+            <div class="feature">
+                <h3>Wallet Management</h3>
+                <p>Create and manage cryptocurrency wallets, transfer tokens, and stake for mining eligibility.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; font-size: 0.9em; color: #7f8c8d;">
+            <p>© 2025 MetaNode Foundation</p>
+        </div>
+    </div>
+</body>
+</html>

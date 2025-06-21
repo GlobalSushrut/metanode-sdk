@@ -1,0 +1,75 @@
+MetaNode SDK Proprietary License
+
+Copyright (c) 2025 [Your Name]
+
+All Rights Reserved
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR 
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
+OR OTHER DEALINGS IN THE SOFTWARE.
+
+TERMS AND CONDITIONS
+
+1. Definitions
+   a. "Software" refers to the MetaNode SDK, including all source code, documentation,
+      and associated materials provided in this repository.
+   b. "Author" refers to the copyright holder.
+   c. "User" refers to any individual or entity that accesses, uses, or references the Software.
+
+2. Usage Rights
+   a. The User is permitted to:
+      i.   View and examine the Software for personal educational purposes.
+      ii.  Use the Software for non-commercial, personal development projects.
+      iii. Contribute to the Software through pull requests, which upon acceptance become
+           the property of the Author but with attribution to the contributor.
+   
+   b. The User is NOT permitted to:
+      i.   Use the Software for any commercial purpose without explicit written permission
+           from the Author.
+      ii.  Modify, adapt, or build upon the Software to create derivative works without
+           explicit written permission from the Author.
+      iii. Redistribute the Software or substantial portions thereof in any form.
+      iv.  Remove or alter any copyright notices or attributions within the Software.
+
+3. Attribution
+   a. Any academic papers, articles, blog posts, or other publications that reference,
+      discuss, or build upon the Software must properly cite and attribute the Author
+      as the creator of the Software.
+   b. The preferred citation format is: "[Your Name], MetaNode SDK, [Year]"
+
+4. Intellectual Property
+   a. All intellectual property rights, including but not limited to copyrights, patents,
+      trade secrets, and trademarks associated with the Software, are and shall remain
+      the exclusive property of the Author.
+   b. The architectural concepts, algorithms, and methodologies embodied in the Software
+      are proprietary intellectual property of the Author.
+
+5. Disclaimer of Warranty
+   a. The Software is provided "as is" without warranty of any kind, either expressed
+      or implied, including, but not limited to, the implied warranties of merchantability
+      and fitness for a particular purpose.
+   b. The Author does not warrant that the functions contained in the Software will meet
+      the User's requirements or that the operation of the Software will be uninterrupted
+      or error-free.
+
+6. Limitation of Liability
+   a. In no event shall the Author be liable for any damages (including, without limitation,
+      lost profits, business interruption, or lost information) rising out of the use of
+      or inability to use the Software.
+
+7. Termination
+   a. This license is effective until terminated by either party.
+   b. The Author reserves the right to terminate this license immediately if the User
+      breaches any of its terms and conditions.
+   c. Upon termination, the User must destroy all copies of the Software.
+
+8. Governing Law
+   a. This license shall be governed by and construed in accordance with the laws of
+      [Your Jurisdiction], excluding its conflicts of law rules.
+
+9. Contact Information
+   For licensing inquiries, please contact:
+   [Your Contact Information]

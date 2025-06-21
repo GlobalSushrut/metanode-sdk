@@ -1,0 +1,29 @@
+{
+  "client_version": "MetaNode/v1.0.0/Production",
+  "block_number": 1,
+  "network_id": null,
+  "peer_count": 0,
+  "is_mining": null,
+  "validator_status": {
+    "status": "online",
+    "data": {
+      "status": "active",
+      "service": "validator"
+    }
+  },
+  "accounts": [],
+  "genesis_block": {
+    "number": "0x1",
+    "hash": "0x1234..."
+  },
+  "latest_block": {
+    "number": "0x1",
+    "hash": "0x1234..."
+  },
+  "local_wallet": {
+    "address": "0xaae534910f6ee383a30974ce3262b57073ca4e82",
+    "public_key": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEIaU+6hTj5dQoKVh8NDfyIPU1l6YZ/+z0\nFrkDoIn3AC7WjV1q7coPNrERPz8TTL7fcLNtZ0OWmU+qMtB7GV+Ibg==\n-----END PUBLIC KEY-----\n",
+    "created_at": "2025-06-20T00:34:53.111852",
+    "type": "local_test_wallet"
+  }
+}

@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metanode-ingress
+  namespace: metanode
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: testnet.metanode.local
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-server
+            port:
+              number: 8000
+      - path: /download
+        pathType: Prefix
+        backend:
+          service:
+            name: sdk-server
+            port:
+              number: 80
+      - path: /ipfs
+        pathType: Prefix
+        backend:
+          service:
+            name: ipfs
+            port:
+              number: 8080

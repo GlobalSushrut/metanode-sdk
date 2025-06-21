@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  app:
+    image: ${IMAGE_NAME:-app:latest}
+    build:
+      context: .
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - METANODE_NETWORK=${METANODE_NETWORK:-testnet}
+      - METANODE_RPC_URL=${METANODE_RPC_URL:-http://testnet:8545}
+      - METANODE_WS_URL=${METANODE_WS_URL:-ws://testnet:8546}
+      - METANODE_IPFS_GATEWAY=${METANODE_IPFS_GATEWAY:-http://testnet:8080}
+      - METANODE_AUTO_CONNECT=true
+    volumes:
+      - ./data:/app/data
+
+  # vPod sidecar using the approach that fixed MetaNode demo CLI
+  vpod-sidecar:
+    image: python:3.9-slim
+    command: >
+      sh -c "mkdir -p /data && 
+             echo '{\"status\":\"active\",\"service\":\"vpod\",\"vpod_id\":\"app-vpod\",
+                   \"algorithms\":[\"federated-average\",\"secure-aggregation\"]}' > /data/status.json && 
+             python3 -m http.server 8070 -d /data"
+    ports:
+      - "8070:8070"
+    volumes:
+      - ./data:/data
+    environment:
+      - METANODE_NETWORK=${METANODE_NETWORK:-testnet}

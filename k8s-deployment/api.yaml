@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: metanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      containers:
+      - name: api
+        image: metanode/api:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: BLOCKCHAIN_NODE
+          value: "blockchain-core:8545"
+        - name: IPFS_NODE
+          value: "ipfs:5001"
+        - name: CONSOLE_MODE
+          value: "true"
+        - name: USE_EXISTING_VPOD
+          value: "true"  # Important fix: use existing Docker vPod containers
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-server
+  namespace: metanode
+spec:
+  selector:
+    app: api-server
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000

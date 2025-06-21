@@ -1,0 +1,37 @@
+{
+  "testnet_status": {
+    "API": {
+      "status": "error",
+      "message": "HTTPConnectionPool(host='159.203.17.36', port=8000): Max retries exceeded with url: /status (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7f8599735640>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    "Blockchain": {
+      "status": "error",
+      "code": 501
+    },
+    "BFR": {
+      "status": "error",
+      "code": 501
+    },
+    "Validator": {
+      "status": "online",
+      "response": {
+        "status": "active",
+        "service": "validator"
+      }
+    }
+  },
+  "blockchain_info": {
+    "status": "success",
+    "client_version": "MetaNode/v1.0.0/Production",
+    "block_number": 1,
+    "network_id": null
+  },
+  "wallet_status": {
+    "status": "error",
+    "message": "'dict' object has no attribute 'address'"
+  },
+  "testnet_nodes": {
+    "status": "error",
+    "message": "'K8sManager' object has no attribute 'list_testnet_nodes'"
+  }
+}

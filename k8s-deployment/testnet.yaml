@@ -1,0 +1,222 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metanode-testnet
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metanode-testnet
+  namespace: metanode-testnet
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: metanode-testnet
+  namespace: metanode-testnet
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: metanode-testnet
+  namespace: metanode-testnet
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: metanode-testnet
+subjects:
+- kind: ServiceAccount
+  name: metanode-testnet
+  namespace: metanode-testnet
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testnet-config
+  namespace: metanode-testnet
+data:
+  config.json: |
+    {
+      "api_url": "https://api.metanode.testnet",
+      "blockchain_type": "ethereum",
+      "consensus_algorithm": "proof-of-authority",
+      "node_discovery": true,
+      "sync_interval": 60,
+      "min_validators": 3,
+      "max_validators": 21,
+      "block_time": 5,
+      "cryptographic_lock": true,
+      "testnet_version": "1.0.0"
+    }
+  node-template.json: |
+    {
+      "listen_ip": "0.0.0.0",
+      "listen_port": 8545,
+      "ws_port": 8546,
+      "p2p_port": 30303,
+      "log_level": "info",
+      "enable_metrics": true,
+      "metrics_port": 9545
+    }
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: testnet-node
+  namespace: metanode-testnet
+  labels:
+    app: metanode-testnet
+spec:
+  serviceName: "testnet"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: metanode-testnet
+  template:
+    metadata:
+      labels:
+        app: metanode-testnet
+    spec:
+      serviceAccountName: metanode-testnet
+      nodeSelector:
+        testnet-node: "true"
+      containers:
+      - name: metanode-testnet
+        image: metanode/testnet:latest
+        ports:
+        - containerPort: 8545
+          name: rpc
+        - containerPort: 8546
+          name: ws
+        - containerPort: 30303
+          name: p2p
+        - containerPort: 9545
+          name: metrics
+        env:
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: testnet-node-keys
+              key: node-key-$(NODE_ID)
+        volumeMounts:
+        - name: testnet-data
+          mountPath: /data
+        - name: config-volume
+          mountPath: /config
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8545
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8545
+          initialDelaySeconds: 30
+          periodSeconds: 15
+      volumes:
+      - name: config-volume
+        configMap:
+          name: testnet-config
+  volumeClaimTemplates:
+  - metadata:
+      name: testnet-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testnet-service
+  namespace: metanode-testnet
+spec:
+  selector:
+    app: metanode-testnet
+  ports:
+  - port: 8545
+    targetPort: 8545
+    protocol: TCP
+    name: rpc
+  - port: 8546
+    targetPort: 8546
+    protocol: TCP
+    name: ws
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testnet-api
+  namespace: metanode-testnet
+spec:
+  selector:
+    app: metanode-testnet
+  ports:
+  - port: 8545
+    targetPort: 8545
+    protocol: TCP
+    name: rpc
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: testnet-network-policy
+  namespace: metanode-testnet
+spec:
+  podSelector:
+    matchLabels:
+      app: metanode-testnet
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: metanode-testnet
+    - namespaceSelector:
+        matchLabels:
+          name: metanode-apps
+    ports:
+    - protocol: TCP
+      port: 8545
+    - protocol: TCP
+      port: 8546
+    - protocol: TCP
+      port: 30303
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: metanode-testnet
+    ports:
+    - protocol: TCP
+      port: 30303
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

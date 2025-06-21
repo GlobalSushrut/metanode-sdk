@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: validator
+  namespace: metanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validator
+  template:
+    metadata:
+      labels:
+        app: validator
+    spec:
+      containers:
+      - name: validator
+        image: metanode/validator:latest
+        imagePullPolicy: IfNotPresent
+        envFrom:
+        - configMapRef:
+            name: metanode-config
+        env:
+        - name: BLOCKCHAIN_NODE
+          value: "blockchain-core:8545"
+        - name: ZK_PROOF_LEVEL
+          value: "testnet"
+        command: ["metanode-validator"]
+        args: ["--console-mode"]

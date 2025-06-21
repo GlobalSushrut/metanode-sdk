@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""
+MetaNode SDK CLI - Main Entry Point
+------------------------------------------------
+This script integrates all MetaNode SDK functionality for DApp development.
+"""
+import os
+import sys
+import json
+import argparse
+import subprocess
+from pathlib import Path
+
+# Ensure module scripts are executable
+subprocess.run(["chmod", "+x", os.path.join(os.path.dirname(__file__), "metanode-cli-agreement")])
+subprocess.run(["chmod", "+x", os.path.join(os.path.dirname(__file__), "metanode-cli-testnet")])
+
+# CLI VERSION
+CLI_VERSION = "1.1.0"
+
+def print_banner():
+    """Print MetaNode CLI banner"""
+    print(f"""
+╔═══════════════════════════════════════════════╗
+║                                               ║
+║       MetaNode SDK CLI Tool v{CLI_VERSION}            ║
+║       Full Consensus & Agreement Edition      ║
+║                                               ║
+╚═══════════════════════════════════════════════╝
+    """)
+
+def init_app(args):
+    """Initialize a new MetaNode application"""
+    if not args.name:
+        print("Error: Application name required")
+        return
+
+    # Create app directory
+    app_dir = os.path.abspath(args.name)
+    if os.path.exists(app_dir):
+        print(f"Error: Directory {app_dir} already exists")
+        return
+    
+    os.makedirs(app_dir)
+    
+    # Create basic app structure
+    os.makedirs(os.path.join(app_dir, "metanode_config"))
+    os.makedirs(os.path.join(app_dir, "metanode_agreements"))
+    os.makedirs(os.path.join(app_dir, "src"))
+    
+    # Create config file
+    config = {
+        "app_name": args.name,
+        "created_at": "2025-06-21T01:03:19-04:00",
+        "network": args.network,
+        "consensus_enabled": True,
+        "agreement_enabled": True,
+        "testnet": {
+            "rpc_url": args.rpc
+        }
+    }
+    
+    with open(os.path.join(app_dir, "metanode_config.json"), "w") as f:
+        json.dump(config, f, indent=2)
+    
+    # Create README
+    with open(os.path.join(app_dir, "README.md"), "w") as f:
+        f.write(f"""# {args.name}
+
+A MetaNode application with full consensus and agreement support.
+
+## Features
+
+- Blockchain consensus integration
+- Agreement validation
+- Testnet connectivity
+
+## Setup
+
+```bash
+# Install dependencies
+npm install  # or pip install -r requirements.txt
+
+# Start the application
+npm start    # or python app.py
+```
+""")
+    
+    print(f"MetaNode application {args.name} initialized successfully!")
+    print(f"Application directory: {app_dir}")
+
+def deploy_app(args):
+    """Deploy a MetaNode application"""
+    app_path = os.path.abspath(args.app_path)
+    
+    if not os.path.exists(app_path):
+        print(f"Error: Application directory {app_path} does not exist")
+        return
+    
+    print(f"Deploying MetaNode application at {app_path}...")
+    
+    # First, set up testnet connection
+    testnet_script = os.path.join(os.path.dirname(__file__), "metanode-cli-testnet")
+    subprocess.run([testnet_script, app_path, "--setup", "--rpc", args.rpc])
+    
+    # Then set up verification proofs
+    subprocess.run([testnet_script, app_path, "--setup-proofs"])
+    
+    # Create and deploy an agreement
+    agreement_script = os.path.join(os.path.dirname(__file__), "metanode-cli-agreement")
+    result = subprocess.run([agreement_script, app_path, "--create", "--network", args.network, "--rpc", args.rpc], 
+                            capture_output=True, text=True)
+    
+    # Extract agreement ID from output
+    output = result.stdout
+    agreement_id = None
+    for line in output.splitlines():
+        if "Agreement created with ID:" in line:
+            agreement_id = line.split(":", 1)[1].strip()
+            break
+    
+    if agreement_id:
+        # Deploy the agreement to blockchain
+        subprocess.run([agreement_script, app_path, "--deploy", "--id", agreement_id])
+        
+        # Connect to testnet
+        subprocess.run([agreement_script, app_path, "--connect-testnet", "--id", agreement_id, "--rpc", args.rpc])
+    
+    print(f"\n✅ MetaNode application deployed successfully with testnet connectivity!")
+
+def check_status(args):
+    """Check status of MetaNode application"""
+    app_path = os.path.abspath(args.app_path)
+    
+    if not os.path.exists(app_path):
+        print(f"Error: Application directory {app_path} does not exist")
+        return
+    
+    print(f"Checking status of MetaNode application at {app_path}...")
+    
+    # Check testnet status
+    testnet_script = os.path.join(os.path.dirname(__file__), "metanode-cli-testnet")
+    subprocess.run([testnet_script, app_path, "--status"])
+    
+    # Check agreement status
+    agreement_script = os.path.join(os.path.dirname(__file__), "metanode-cli-agreement")
+    subprocess.run([agreement_script, app_path, "--status"])
+
+def create_node_cluster(args):
+    """Create a node cluster for improved decentralization"""
+    app_path = os.path.abspath(args.app_path)
+    
+    if not os.path.exists(app_path):
+        print(f"Error: Application directory {app_path} does not exist")
+        return
+    
+    # Set up the cluster configuration
+    testnet_script = os.path.join(os.path.dirname(__file__), "metanode-cli-testnet")
+    subprocess.run([testnet_script, app_path, "--create-cluster", "--rpc", args.rpc])
+    
+    # Run the enhancement script if available
+    enhancement_script = os.path.expanduser("~/Videos/vKuber9/enhance_testnet_decentralization.sh")
+    if os.path.exists(enhancement_script):
+        print("Deploying node cluster for improved testnet decentralization...")
+        subprocess.run([enhancement_script])
+    else:
+        print("WARNING: Could not find enhancement script to deploy the node cluster")
+        print(f"Expected path: {enhancement_script}")
+
+def main():
+    """Main entry point for the CLI"""
+    parser = argparse.ArgumentParser(description="MetaNode SDK CLI Tool")
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+    
+    # Init command
+    init_parser = subparsers.add_parser("init", help="Initialize a new MetaNode application")
+    init_parser.add_argument("name", help="Application name")
+    init_parser.add_argument("--network", help="Network type", default="testnet", choices=["testnet", "mainnet"])
+    init_parser.add_argument("--rpc", help="RPC URL", default="http://159.203.17.36:8545")
+    
+    # Deploy command
+    deploy_parser = subparsers.add_parser("deploy", help="Deploy a MetaNode application")
+    deploy_parser.add_argument("app_path", help="Application directory path")
+    deploy_parser.add_argument("--network", help="Network type", default="testnet", choices=["testnet", "mainnet"])
+    deploy_parser.add_argument("--rpc", help="RPC URL", default="http://159.203.17.36:8545")
+    
+    # Status command
+    status_parser = subparsers.add_parser("status", help="Check status of a MetaNode application")
+    status_parser.add_argument("app_path", help="Application directory path")
+    
+    # Agreement command - pass through to specific script
+    agreement_parser = subparsers.add_parser("agreement", help="Manage agreements")
+    agreement_parser.add_argument("app_path", help="Application directory path")
+    agreement_parser.add_argument("--create", help="Create a new agreement", action="store_true")
+    agreement_parser.add_argument("--deploy", help="Deploy an agreement", action="store_true")
+    agreement_parser.add_argument("--verify", help="Verify an agreement", action="store_true")
+    agreement_parser.add_argument("--status", help="Check agreement status", action="store_true")
+    agreement_parser.add_argument("--id", help="Agreement ID")
+    agreement_parser.add_argument("--network", help="Network type", default="testnet")
+    agreement_parser.add_argument("--rpc", help="RPC URL", default="http://159.203.17.36:8545")
+    
+    # Testnet command - pass through to specific script
+    testnet_parser = subparsers.add_parser("testnet", help="Manage testnet connections")
+    testnet_parser.add_argument("app_path", help="Application directory path")
+    testnet_parser.add_argument("--test", help="Test connection", action="store_true")
+    testnet_parser.add_argument("--setup", help="Set up connection", action="store_true")
+    testnet_parser.add_argument("--status", help="Check connection status", action="store_true")
+    testnet_parser.add_argument("--rpc", help="RPC URL", default="http://159.203.17.36:8545")
+    
+    # Cluster command
+    cluster_parser = subparsers.add_parser("cluster", help="Manage node clusters")
+    cluster_parser.add_argument("app_path", help="Application directory path")
+    cluster_parser.add_argument("--create", help="Create a node cluster", action="store_true")
+    cluster_parser.add_argument("--rpc", help="RPC URL", default="http://159.203.17.36:8545")
+    
+    args = parser.parse_args()
+    
+    print_banner()
+    
+    if args.command == "init":
+        init_app(args)
+    elif args.command == "deploy":
+        deploy_app(args)
+    elif args.command == "status":
+        check_status(args)
+    elif args.command == "agreement":
+        # Pass through to agreement script
+        agreement_script = os.path.join(os.path.dirname(__file__), "metanode-cli-agreement")
+        cmd = [agreement_script, args.app_path]
+        for arg, value in vars(args).items():
+            if arg not in ["command", "app_path"] and value is not None:
+                if isinstance(value, bool):
+                    if value:
+                        cmd.append(f"--{arg}")
+                else:
+                    cmd.append(f"--{arg}")
+                    cmd.append(str(value))
+        subprocess.run(cmd)
+    elif args.command == "testnet":
+        # Pass through to testnet script
+        testnet_script = os.path.join(os.path.dirname(__file__), "metanode-cli-testnet")
+        cmd = [testnet_script, args.app_path]
+        for arg, value in vars(args).items():
+            if arg not in ["command", "app_path"] and value is not None:
+                if isinstance(value, bool):
+                    if value:
+                        cmd.append(f"--{arg}")
+                else:
+                    cmd.append(f"--{arg}")
+                    cmd.append(str(value))
+        subprocess.run(cmd)
+    elif args.command == "cluster" and args.create:
+        create_node_cluster(args)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

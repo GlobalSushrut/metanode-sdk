@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metanode-network-config
+data:
+  network: ${METANODE_NETWORK:-testnet}
+  rpc_url: ${METANODE_RPC_URL:-http://testnet:8545}
+  ws_url: ${METANODE_WS_URL:-ws://testnet:8546}
+  wallet_url: ${METANODE_WALLET_URL:-http://testnet:3000}
+  ipfs_gateway: ${METANODE_IPFS_GATEWAY:-http://testnet:8080}
+  token_contract: ${METANODE_TOKEN_CONTRACT:-0x123456789abcdef}
+  auto_connect: "true"
+  auto_validation: "true"

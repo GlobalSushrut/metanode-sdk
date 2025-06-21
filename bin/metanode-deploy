@@ -1,0 +1,137 @@
+#!/bin/bash
+# MetaNode Auto-Deployment CLI
+# Automatically deploys any app with blockchain properties
+# Uses the successful vPod container approach from MetaNode demo CLI
+
+# Get the directory this script is in
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SDK_DIR="$(dirname "$DIR")"
+PYTHON_PATH="$SDK_DIR"
+
+# Color output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Show help
+show_help() {
+    echo -e "${BLUE}MetaNode Auto-Deployment CLI${NC}"
+    echo "Automatically deploys applications with blockchain properties"
+    echo
+    echo "Usage:"
+    echo "  metanode-deploy <app_path> [options]"
+    echo
+    echo "Options:"
+    echo "  --mainnet           Connect to mainnet instead of testnet"
+    echo "  --testnet           Connect to testnet (default)"
+    echo "  --wallet <path>     Path to wallet file (required for mainnet)"
+    echo "  --help              Show this help message"
+    echo
+    echo "Examples:"
+    echo "  metanode-deploy ~/myapp --testnet"
+    echo "  metanode-deploy ~/myapp --mainnet --wallet ~/my_wallet.json"
+}
+
+# Check for Python environment
+check_python() {
+    if ! command -v python3 &> /dev/null; then
+        echo -e "${RED}Error: Python 3 is required but not found.${NC}"
+        exit 1
+    fi
+    
+    # Check for required packages
+    python3 -c "import yaml, web3" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo -e "${YELLOW}Installing required Python packages...${NC}"
+        pip3 install pyyaml web3
+    fi
+}
+
+# Main entry point
+main() {
+    # Parse arguments
+    APP_PATH=""
+    USE_MAINNET=false
+    WALLET_PATH=""
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --help)
+                show_help
+                exit 0
+                ;;
+            --mainnet)
+                USE_MAINNET=true
+                shift
+                ;;
+            --testnet)
+                USE_MAINNET=false
+                shift
+                ;;
+            --wallet)
+                if [[ $# -lt 2 ]]; then
+                    echo -e "${RED}Error: --wallet requires a path argument${NC}"
+                    exit 1
+                fi
+                WALLET_PATH="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$APP_PATH" ]]; then
+                    APP_PATH="$1"
+                    shift
+                else
+                    echo -e "${RED}Error: Unexpected argument: $1${NC}"
+                    show_help
+                    exit 1
+                fi
+                ;;
+        esac
+    done
+    
+    # Validate arguments
+    if [[ -z "$APP_PATH" ]]; then
+        echo -e "${RED}Error: App path is required${NC}"
+        show_help
+        exit 1
+    fi
+    
+    if [[ "$USE_MAINNET" == true && -z "$WALLET_PATH" ]]; then
+        echo -e "${RED}Error: Wallet path is required for mainnet deployment${NC}"
+        echo -e "${YELLOW}Use --wallet <path> to specify a wallet file${NC}"
+        exit 1
+    fi
+    
+    # Run Python script
+    echo -e "${BLUE}Starting auto-deployment process...${NC}"
+    PYTHONPATH="$PYTHON_PATH" python3 -c "
+import sys
+sys.path.insert(0, '$PYTHON_PATH')
+from metanode.deployment.auto_deploy_agent import AutoDeployAgent, NetworkConfig
+
+# Set network configuration
+network_config = NetworkConfig(use_mainnet=$USE_MAINNET)
+network_config.save_network_selection()
+
+# Create and run agent
+agent = AutoDeployAgent('$APP_PATH', '$WALLET_PATH')
+result = agent.deploy()
+
+if result.get('status') == 'success':
+    print('\033[0;32mDeployment successful!\033[0m')
+    if result.get('mainnet_connected'):
+        print('\033[0;32mConnected to mainnet with rental tokens.\033[0m')
+    else:
+        print('\033[0;34mConnected to testnet.\033[0m')
+else:
+    print(f'\033[0;31mDeployment failed: {result.get(\"error\", \"Unknown error\")}\033[0m')
+"
+}
+
+# Check Python environment
+check_python
+
+# Run main function
+main "$@"

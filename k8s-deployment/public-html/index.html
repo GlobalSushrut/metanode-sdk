@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaNode SDK - Quantum-Federated Blockchain Infrastructure</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            flex-basis: 48%;
+        }
+        @media (max-width: 800px) {
+            .card {
+                flex-basis: 100%;
+            }
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MetaNode Testnet Infrastructure</h1>
+        <p>Quantum-Federated Blockchain Network for Secure, Console-Based Operations</p>
+        <div>
+            <a href="/download/metanode-sdk-1.0.0-beta.tar.gz" class="button">Download SDK</a>
+            <a href="/download/docs/getting-started.html" class="button">Documentation</a>
+            <a href="https://github.com/metanode/metanode-sdk" class="button">GitHub</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Quick Install</h2>
+            <p>Install directly from PyPI:</p>
+            <pre>pip install metanode-sdk</pre>
+            <p>Or clone and install from source:</p>
+            <pre>git clone https://github.com/metanode/metanode-sdk.git
+cd metanode-sdk
+pip install -e .</pre>
+        </div>
+
+        <div class="card">
+            <h2>Connect to Testnet Infrastructure</h2>
+            <p>The SDK automatically connects to our public testnet infrastructure at <code>159.203.17.36</code>.</p>
+            <p>Create a wallet to interact with the network:</p>
+            <pre>metanode-wallet create</pre>
+            <p>Get tokens for deploying nodes and applications:</p>
+            <pre><a href="http://159.203.17.36/faucet">http://159.203.17.36/faucet</a></pre>
+        </div>
+
+        <div class="card">
+            <h2>Connect to the Infrastructure</h2>
+            <p>The MetaNode testnet is a <strong>blockchain infrastructure</strong> that manages server and client nodes. First, deploy your own nodes that connect to this infrastructure:</p>
+            <pre># Deploy your own server node
+metanode-cli node deploy --type server
+
+# Deploy your own client node
+metanode-cli node deploy --type client</pre>
+            <p>Then deploy your applications on your connected nodes:</p>
+            <pre># Deploy your app
+metanode-cli app deploy app-config.json</pre>
+        </div>
+
+        <div class="card">
+            <h2>Console-Only Mode</h2>
+            <p>MetaNode SDK runs entirely in console mode without UI dependencies. All operations can be performed via CLI tools:</p>
+            <ul>
+                <li><code>metanode-wallet</code> - Wallet management</li>
+                <li><code>metanode-miner</code> - Mining operations</li>
+                <li><code>metanode-cli</code> - Deployment and status</li>
+                <li><code>metanode-cloud</code> - Cloud resource management</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Testnet Infrastructure Architecture</h2>
+    <p>The MetaNode testnet provides the underlying blockchain infrastructure that manages server and client nodes:</p>
+
+    <div class="container">
+        <div class="card">
+            <h3>How It Works</h3>
+            <p>1. The testnet infrastructure manages the core blockchain and federated network</p>
+            <p>2. Developers deploy their own server and client nodes that connect to this infrastructure</p> 
+            <p>3. Applications are built and deployed on top of this connected network</p>
+        </div>
+
+        <div class="card">
+            <h3>Node Management</h3>
+            <pre># Deploy your server node
+metanode-cli node deploy --type server
+
+# Monitor your nodes
+metanode-cli node list --status
+
+# Scale server capacity
+metanode-cli node scale --replicas 3</pre>
+        </div>
+    </div>
+
+    <h2>Example Applications</h2>
+    <p>Explore our example applications to see MetaNode in action:</p>
+    <div class="container">
+        <div class="card">
+            <h3>Federated Learning Demo</h3>
+            <p>Simple federated learning application using federated averaging:</p>
+            <pre># First deploy your nodes
+metanode-cli node deploy --type client
+
+# Then deploy the application
+metanode-cli app deploy examples/federated-learning/config.json</pre>
+            <a href="/download/examples/federated-learning.zip" class="button">Download Example</a>
+        </div>
+
+        <div class="card">
+            <h3>Secure Aggregation Demo</h3>
+            <p>Privacy-preserving data aggregation with zero-knowledge proofs:</p>
+            <pre># First deploy your nodes
+metanode-cli node deploy --type client
+
+# Then deploy the application
+metanode-cli app deploy examples/secure-aggregation/config.json</pre>
+            <a href="/download/examples/secure-aggregation.zip" class="button">Download Example</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>MetaNode SDK v1.0.0-beta | Built for console-based workflows | © 2025 MetaNode Project</p>
+    </footer>
+</body>
+</html>

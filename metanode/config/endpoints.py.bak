@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""
+MetaNode Service Endpoints Configuration
+=======================================
+Configuration for connecting to MetaNode services.
+"""
+
+# Default server endpoints for production deployment
+DEFAULT_SERVER = "159.203.17.36"
+API_PORT = 8000
+BLOCKCHAIN_PORT = 8545
+BFR_PORT = 9000
+VALIDATOR_PORT = 9001
+
+# Build the full URLs
+API_URL = f"http://{DEFAULT_SERVER}:{API_PORT}"
+BLOCKCHAIN_URL = f"http://{DEFAULT_SERVER}:{BLOCKCHAIN_PORT}"
+BFR_URL = f"http://{DEFAULT_SERVER}:{BFR_PORT}"
+VALIDATOR_URL = f"http://{DEFAULT_SERVER}:{VALIDATOR_PORT}"
+
+# Function to build custom endpoints
+def build_endpoint_urls(server=DEFAULT_SERVER):
+    """Build endpoint URLs for a custom server."""
+    return {
+        "api": f"http://{server}:{API_PORT}",
+        "blockchain": f"http://{server}:{BLOCKCHAIN_PORT}",
+        "bfr": f"http://{server}:{BFR_PORT}",
+        "validator": f"http://{server}:{VALIDATOR_PORT}"
+    }

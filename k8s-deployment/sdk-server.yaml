@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sdk-server
+  namespace: metanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sdk-server
+  template:
+    metadata:
+      labels:
+        app: sdk-server
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: sdk-content
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: sdk-content
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sdk-server
+  namespace: metanode
+spec:
+  selector:
+    app: sdk-server
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80

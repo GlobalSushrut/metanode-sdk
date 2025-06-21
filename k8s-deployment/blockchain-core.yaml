@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blockchain-core
+  namespace: metanode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blockchain-core
+  template:
+    metadata:
+      labels:
+        app: blockchain-core
+    spec:
+      containers:
+      - name: blockchain
+        image: metanode/core:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8545
+          name: rpc
+        - containerPort: 8546
+          name: p2p
+        envFrom:
+        - configMapRef:
+            name: metanode-config
+        volumeMounts:
+        - name: blockchain-data
+          mountPath: /data
+        command: ["metanode-core"]
+        args: ["--testnet", "--console-mode"]
+      volumes:
+      - name: blockchain-data
+        persistentVolumeClaim:
+          claimName: blockchain-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-core
+  namespace: metanode
+spec:
+  selector:
+    app: blockchain-core
+  ports:
+  - name: rpc
+    port: 8545
+    targetPort: 8545

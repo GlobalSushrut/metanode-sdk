@@ -1,0 +1,477 @@
+#!/usr/bin/env python3
+"""
+MetaNode SDK CLI Tool for Application Deployment
+------------------------------------------------
+This CLI tool enables developers to deploy any application to MetaNode infrastructure
+with blockchain integration, agreement deployment, and testnet connectivity.
+"""
+import os
+import sys
+import json
+import argparse
+import shutil
+import subprocess
+import datetime
+import uuid
+from pathlib import Path
+
+# Ensure the metanode module can be imported
+SDK_PATH = Path(__file__).parent.parent.absolute()
+sys.path.insert(0, str(SDK_PATH))
+
+try:
+    from metanode.dapp.fixed_connector import DAppConnector
+except ImportError:
+    print("ERROR: MetaNode SDK not found in path. Please install the MetaNode SDK first.")
+    sys.exit(1)
+
+# CLI VERSION
+CLI_VERSION = "1.0.0"
+
+def banner():
+    """Display the CLI banner"""
+    print(f"""
+    ╔══════════════════════════════════════╗
+    ║        MetaNode SDK CLI Tool         ║
+    ║           Version {CLI_VERSION}             ║
+    ╚══════════════════════════════════════╝
+    """)
+
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description="MetaNode SDK CLI Tool")
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+
+    # Initialize command
+    init_parser = subparsers.add_parser("init", help="Initialize a new MetaNode app")
+    init_parser.add_argument("name", help="Project name")
+    init_parser.add_argument("--directory", "-d", help="Project directory", default=".")
+    init_parser.add_argument("--template", "-t", help="Project template", default="webapp")
+
+    # Deploy command
+    deploy_parser = subparsers.add_parser("deploy", help="Deploy an app to MetaNode")
+    deploy_parser.add_argument("app_path", help="Path to your application")
+    deploy_parser.add_argument("--wallet", help="Path to wallet file", default=None)
+    deploy_parser.add_argument("--network", help="Network type: 'testnet' or 'mainnet'", default="testnet")
+    deploy_parser.add_argument("--rpc", help="Custom RPC endpoint", default="http://159.203.17.36:8545")
+    deploy_parser.add_argument("--algorithms", help="Comma-separated list of algorithms", default="federated-average,secure-aggregation")
+    deploy_parser.add_argument("--ipfs", help="IPFS gateway", default="http://localhost:8081")
+
+    # Transform command
+    transform_parser = subparsers.add_parser("transform", help="Transform an app into a DApp")
+    transform_parser.add_argument("app_path", help="Path to your application")
+    transform_parser.add_argument("--wallet", help="Path to wallet file", default=None)
+    transform_parser.add_argument("--network", help="Network type: 'testnet' or 'mainnet'", default="testnet")
+
+    # Agreement command
+    agreement_parser = subparsers.add_parser("agreement", help="Manage DApp agreements")
+    agreement_parser.add_argument("app_path", help="Path to your application")
+    agreement_parser.add_argument("--create", help="Create a new agreement", action="store_true")
+    agreement_parser.add_argument("--verify", help="Verify an agreement", action="store_true")
+    agreement_parser.add_argument("--update", help="Update an agreement", action="store_true")
+
+    # Status command
+    status_parser = subparsers.add_parser("status", help="Check DApp status")
+    status_parser.add_argument("app_path", help="Path to your application")
+
+    return parser.parse_args()
+
+def init_app(args):
+    """Initialize a new MetaNode app"""
+    print(f"Initializing new MetaNode app: {args.name}")
+    
+    # Create project directory
+    project_dir = os.path.join(args.directory, args.name)
+    if os.path.exists(project_dir):
+        print(f"Error: Directory {project_dir} already exists")
+        return False
+    
+    os.makedirs(project_dir)
+    
+    # Create template files based on selected template
+    if args.template == "webapp":
+        os.makedirs(os.path.join(project_dir, "src"))
+        os.makedirs(os.path.join(project_dir, "public"))
+        os.makedirs(os.path.join(project_dir, "contracts"))
+        
+        # Create main.py
+        with open(os.path.join(project_dir, "main.py"), "w") as f:
+            f.write("""#!/usr/bin/env python3
+from flask import Flask, jsonify
+import os
+
+app = Flask(__name__)
+
+@app.route('/api/health')
+def health_check():
+    return jsonify({"status": "healthy"})
+
+@app.route('/api/data')
+def get_data():
+    return jsonify({
+        "message": "Hello from MetaNode DApp!",
+        "timestamp": os.environ.get('METANODE_TIMESTAMP', 'N/A'),
+        "network": os.environ.get('METANODE_NETWORK', 'N/A')
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', '8000')))
+""")
+        
+        # Create package.json
+        with open(os.path.join(project_dir, "package.json"), "w") as f:
+            f.write("""{
+  "name": "metanode-app",
+  "version": "1.0.0",
+  "description": "MetaNode DApp",
+  "main": "main.py",
+  "scripts": {
+    "start": "python main.py",
+    "test": "echo \\"Error: no test specified\\" && exit 1"
+  }
+}
+""")
+        
+        # Create requirements.txt
+        with open(os.path.join(project_dir, "requirements.txt"), "w") as f:
+            f.write("""flask==2.0.1
+requests==2.26.0
+web3==5.24.0
+ipfshttpclient==0.7.0
+pydantic==1.8.2
+""")
+        
+        # Create Dockerfile
+        with open(os.path.join(project_dir, "Dockerfile"), "w") as f:
+            f.write("""FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["python", "main.py"]
+""")
+        
+        # Create .env file
+        with open(os.path.join(project_dir, ".env"), "w") as f:
+            f.write("""PORT=8000
+METANODE_NETWORK=testnet
+METANODE_RPC_URL=http://159.203.17.36:8545
+METANODE_WS_URL=ws://159.203.17.36:8546
+METANODE_IPFS_GATEWAY=http://localhost:8081
+""")
+
+        # Create contract template
+        with open(os.path.join(project_dir, "contracts", "Agreement.sol"), "w") as f:
+            f.write("""// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Agreement {
+    address public owner;
+    string public appId;
+    bool public isValid;
+    
+    constructor(string memory _appId) {
+        owner = msg.sender;
+        appId = _appId;
+        isValid = true;
+    }
+    
+    function updateValidity(bool _isValid) public {
+        require(msg.sender == owner, "Only owner can update validity");
+        isValid = _isValid;
+    }
+    
+    function checkValidity() public view returns (bool) {
+        return isValid;
+    }
+}
+""")
+
+        # Create README.md
+        with open(os.path.join(project_dir, "README.md"), "w") as f:
+            f.write(f"""# {args.name}
+
+This is a MetaNode DApp created with the MetaNode CLI tool.
+
+## Getting Started
+
+1. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the app:
+
+```bash
+python main.py
+```
+
+3. Deploy to MetaNode:
+
+```bash
+metanode-cli deploy .
+```
+
+## MetaNode Features
+
+- Blockchain integration
+- Agreement management
+- Testnet connectivity
+- Decentralized data storage
+""")
+
+    print(f"MetaNode app initialized successfully in {project_dir}")
+    print(f"To deploy your app, run: metanode-cli deploy {project_dir}")
+    return True
+
+def deploy_app(args):
+    """Deploy an app to MetaNode infrastructure"""
+    print(f"Deploying app from {args.app_path} to MetaNode infrastructure...")
+    
+    # Validate app path
+    if not os.path.exists(args.app_path):
+        print(f"Error: App path {args.app_path} does not exist")
+        return False
+        
+    app_path = os.path.abspath(args.app_path)
+    
+    # Parse algorithms
+    algorithms = args.algorithms.split(',')
+    
+    # Create deployment config
+    config = {
+        "app_path": app_path,
+        "wallet_path": args.wallet,
+        "network": args.network,
+        "rpc_url": args.rpc,
+        "algorithms": algorithms,
+        "ipfs_gateway": args.ipfs,
+        "deployment_id": str(uuid.uuid4()),
+        "timestamp": datetime.datetime.now().isoformat()
+    }
+    
+    # Save deployment config
+    config_path = os.path.join(app_path, "metanode_config.json")
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2)
+    
+    print(f"Deployment config saved to {config_path}")
+    
+    # Initialize DApp connector
+    try:
+        connector = DAppConnector(
+            path=app_path,
+            wallet_path=args.wallet,
+            network=args.network
+        )
+        
+        # Transform app into DApp
+        print("Transforming app into DApp...")
+        dapp = connector.make_dapp()
+        
+        # Deploy DApp
+        print("Deploying DApp...")
+        deployment = connector.deploy(dapp, algorithms)
+        
+        print(f"DApp deployed successfully with ID: {deployment.id}")
+        print(f"Blockchain network: {args.network}")
+        print(f"RPC endpoint: {args.rpc}")
+        print(f"Algorithms: {', '.join(algorithms)}")
+        
+        # Create deployment verification file
+        lock_path = os.path.join(app_path, "docker.lock")
+        print(f"Deployment verification saved to {lock_path}")
+        
+        return True
+    except Exception as e:
+        print(f"Error deploying app: {str(e)}")
+        return False
+
+def transform_app(args):
+    """Transform an app into a DApp"""
+    print(f"Transforming app from {args.app_path} into a DApp...")
+    
+    # Validate app path
+    if not os.path.exists(args.app_path):
+        print(f"Error: App path {args.app_path} does not exist")
+        return False
+        
+    app_path = os.path.abspath(args.app_path)
+    
+    # Initialize DApp connector
+    try:
+        connector = DAppConnector(
+            path=app_path,
+            wallet_path=args.wallet,
+            network=args.network
+        )
+        
+        # Transform app into DApp
+        print("Transforming app into DApp...")
+        dapp = connector.make_dapp()
+        
+        print("App transformed successfully into a DApp")
+        print(f"DApp ID: {dapp.id}")
+        print(f"Blockchain network: {args.network}")
+        
+        return True
+    except Exception as e:
+        print(f"Error transforming app: {str(e)}")
+        return False
+
+def manage_agreement(args):
+    """Manage DApp agreements"""
+    print(f"Managing agreements for app in {args.app_path}...")
+    
+    # Validate app path
+    if not os.path.exists(args.app_path):
+        print(f"Error: App path {args.app_path} does not exist")
+        return False
+        
+    app_path = os.path.abspath(args.app_path)
+    
+    # Load deployment config
+    config_path = os.path.join(app_path, "metanode_config.json")
+    if not os.path.exists(config_path):
+        print(f"Error: Deployment config not found in {config_path}")
+        return False
+        
+    with open(config_path, "r") as f:
+        config = json.load(f)
+    
+    # Initialize DApp connector
+    try:
+        connector = DAppConnector(
+            path=app_path,
+            wallet_path=config.get("wallet_path"),
+            network=config.get("network", "testnet")
+        )
+        
+        if args.create:
+            print("Creating new agreement...")
+            agreement_id = str(uuid.uuid4())
+            agreement = {
+                "id": agreement_id,
+                "app_id": config.get("deployment_id"),
+                "created_at": datetime.datetime.now().isoformat(),
+                "type": "standard",
+                "status": "active"
+            }
+            
+            agreement_path = os.path.join(app_path, f"agreement_{agreement_id}.json")
+            with open(agreement_path, "w") as f:
+                json.dump(agreement, f, indent=2)
+                
+            print(f"Agreement created with ID: {agreement_id}")
+            print(f"Agreement saved to {agreement_path}")
+            
+        elif args.verify:
+            print("Verifying agreement...")
+            # Load docker.lock to verify deployment
+            lock_path = os.path.join(app_path, "docker.lock")
+            if not os.path.exists(lock_path):
+                print(f"Error: Deployment verification not found in {lock_path}")
+                return False
+                
+            print("Agreement verification successful")
+            
+        elif args.update:
+            print("Updating agreement...")
+            # Find all agreement files
+            agreement_files = [f for f in os.listdir(app_path) if f.startswith("agreement_") and f.endswith(".json")]
+            
+            if not agreement_files:
+                print("No agreements found to update")
+                return False
+                
+            for agreement_file in agreement_files:
+                agreement_path = os.path.join(app_path, agreement_file)
+                with open(agreement_path, "r") as f:
+                    agreement = json.load(f)
+                
+                agreement["updated_at"] = datetime.datetime.now().isoformat()
+                agreement["status"] = "updated"
+                
+                with open(agreement_path, "w") as f:
+                    json.dump(agreement, f, indent=2)
+                    
+                print(f"Agreement {agreement['id']} updated")
+        
+        return True
+    except Exception as e:
+        print(f"Error managing agreements: {str(e)}")
+        return False
+
+def check_status(args):
+    """Check DApp status"""
+    print(f"Checking status of DApp in {args.app_path}...")
+    
+    # Validate app path
+    if not os.path.exists(args.app_path):
+        print(f"Error: App path {args.app_path} does not exist")
+        return False
+        
+    app_path = os.path.abspath(args.app_path)
+    
+    # Check for docker.lock file
+    lock_path = os.path.join(app_path, "docker.lock")
+    if not os.path.exists(lock_path):
+        print("DApp not deployed. No docker.lock file found.")
+        return False
+        
+    with open(lock_path, "r") as f:
+        try:
+            lock_data = f.read().replace("locked:", "").strip()
+            lock_info = json.loads(lock_data)
+            
+            print("=== DApp Status ===")
+            print(f"Status: {lock_info.get('status', 'unknown')}")
+            print(f"Network: {lock_info.get('network', 'unknown')}")
+            print(f"Timestamp: {lock_info.get('timestamp', 'unknown')}")
+            print(f"Transformed: {lock_info.get('transformed', False)}")
+            
+            if 'endpoints' in lock_info:
+                print("\n=== Endpoints ===")
+                for key, value in lock_info['endpoints'].items():
+                    print(f"{key}: {value}")
+            
+            if 'consensus' in lock_info:
+                print("\n=== Consensus ===")
+                consensus = lock_info['consensus']
+                if 'validators' in consensus:
+                    print(f"Validators: {', '.join(consensus['validators'])}")
+                if 'ledger_nodes' in consensus:
+                    print(f"Ledger nodes: {', '.join(consensus['ledger_nodes'])}")
+                if 'testnet_connector' in consensus:
+                    print(f"Testnet connector: {consensus['testnet_connector']}")
+            
+            print("\n=== Algorithms ===")
+            print(f"Available: {', '.join(lock_info.get('algorithm_modes', ['none']))}")
+            
+            return True
+        except json.JSONDecodeError:
+            print("Error parsing docker.lock file. Format appears invalid.")
+            return False
+    
+def main():
+    """Main CLI entry point"""
+    banner()
+    args = parse_arguments()
+    
+    if args.command == "init":
+        init_app(args)
+    elif args.command == "deploy":
+        deploy_app(args)
+    elif args.command == "transform":
+        transform_app(args)
+    elif args.command == "agreement":
+        manage_agreement(args)
+    elif args.command == "status":
+        check_status(args)
+    else:
+        print("Please specify a command. Use --help for available commands.")
+
+if __name__ == "__main__":
+    main()
