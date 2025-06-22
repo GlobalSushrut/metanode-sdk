@@ -96,3 +96,10 @@ This demo simulates blockchain interactions to showcase the behavior of the dApp
 - Kubernetes vPod deployment automation
 - Zero-knowledge proofs for patient data privacy
 - Multi-node consensus for medical data verification
+
+## Contact
+
+For questions or assistance with the Hospital IoT Manager dApp, please contact:
+
+- Email: umeshlamton@gmail.com
+- GitHub: https://github.com/GlobalSushrut/metanode-sdk

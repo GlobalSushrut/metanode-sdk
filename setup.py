@@ -23,7 +23,7 @@ setup(
     and Kubernetes blockchain cluster integration.
     """,
     author="MetaNode Foundation",
-    author_email="dev@metanode.network",
+    author_email="umeshlamton@gmail.com",
     packages=find_packages(),
     install_requires=[
         "typer>=0.7.0",
