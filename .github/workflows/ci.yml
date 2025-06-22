@@ -24,15 +24,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        # Install base test dependencies first
+        # Install Cython first to fix build issues
+        pip install Cython
+        # Install base test dependencies
         pip install pytest pytest-cov black isort mypy
-        # Install critical blockchain dependencies separately with higher compatibility
-        pip install "pyyaml>=5.4.1,<6.0" web3>=6.0.0 eth-account>=0.7.0 eth-utils>=2.1.0
+        # Install critical blockchain dependencies separately using binary wheels when possible
+        pip install --only-binary=:all: pyyaml || pip install "pyyaml>=5.4.1,<6.0"
+        pip install web3>=6.0.0 eth-account>=0.7.0 eth-utils>=2.1.0
         pip install requests cryptography python-dotenv jsonschema
+        # Install the most critical dependencies for blockchain functionality
+        pip install "urllib3<2.0.0" "websockets>=11.0.0" "merklelib>=1.0.0"
         # Skip problematic container dependencies in CI environment
-        pip install -r requirements.txt --no-deps || echo "Skipping full dependency installation for CI"
-        # Ensure blockchain modules can be imported
-        pip install kubernetes==27.2.0 --no-deps
+        echo "Skipping full requirements install, using minimal dependencies for CI"
+        # Make sure the metanode package is installed in development mode
+        pip install -e .
         
     - name: Run tests with pytest
       run: |
