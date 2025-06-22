@@ -49,8 +49,8 @@ jobs:
         
     - name: Run tests with pytest
       run: |
-        # Run only the basic tests that should pass with our stubs
-        pytest tests/test_basic.py -v
+        # Run only the CI-compatible tests that don't require dependencies
+        pytest tests/test_ci.py -v
       
     - name: Run informational checks (non-blocking)
       run: |
