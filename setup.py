@@ -28,16 +28,20 @@ setup(
     install_requires=[
         "typer>=0.7.0",
         "rich>=12.0.0",
-        "pyyaml>=6.0.0",
+        "pyyaml>=5.4.1,<6.0",  # Use PyYAML <6.0 for docker-compose compatibility
         "cryptography>=38.0.0",
         "requests>=2.28.0",
-        "asyncio>=3.4.3",
+        "urllib3<2.0.0",  # Added to ensure blockchain testnet compatibility
         "pydantic>=1.9.0",
         "click>=8.0.0",
-        "kubernetes>=26.1.0",
+        "kubernetes>=26.1.0,<28.0.0",
         "ipfshttpclient==0.8.0a2",
         "base58>=2.1.1",
         "web3>=6.0.0",
+        "eth-account>=0.7.0",  # Required for blockchain transaction signing
+        "eth-utils>=2.1.0",  # Required for blockchain data processing
+        "merklelib>=1.0.0",  # Required for blockchain verification proofs
+        "websockets>=11.0.0", # Required for testnet connections
         "sshpass>=1.0.6"
     ],
     package_data={
